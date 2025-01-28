@@ -1,0 +1,228 @@
+package JDM;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+class Car {
+    private double horsepower;
+    private double torque;
+    private double weight;
+    private double dragCoefficient;
+
+    public Car(double horsepower, double torque, double weight, double dragCoefficient) {
+        this.horsepower = horsepower;
+        this.torque = torque;
+        this.weight = weight;
+        this.dragCoefficient = dragCoefficient;
+    }
+
+    public double getHorsepower() {
+        return horsepower;
+    }
+
+    public double getTorque() {
+        return torque;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public double getDragCoefficient() {
+        return dragCoefficient;
+    }
+}
+
+class PerformanceAnalyzer {
+
+	public static double calculateAccelerationTime(Car car) {
+	    double torque = car.getTorque(); 
+	    double weight = car.getWeight(); 
+	    double tireGripCoefficient = 1.2; 
+	    double efficiency = 0.85; 
+	    double powerLossFactor = 0.9; 
+
+	    double force = torque * tireGripCoefficient * efficiency;
+
+	    double acceleration = (18*force / weight) * powerLossFactor;
+	    if (acceleration <= 0) {
+	        return Double.POSITIVE_INFINITY;
+	    }
+
+	    double time = Math.sqrt(2 * 26.82 / acceleration);
+	    return time;
+	}
+
+
+    public static String analyzePerformance(Car car) {
+        double horsepower = car.getHorsepower();
+        double weight = car.getWeight();
+        double dragCoefficient = car.getDragCoefficient();
+
+        double frontalArea = 2.2; 
+        double airDensity = 1.225; 
+        double horsepowerToWatts = 745.7; 
+        double powerInWatts = horsepower * horsepowerToWatts;
+
+        double topSpeed = Math.cbrt((2 * powerInWatts) / (dragCoefficient * frontalArea * airDensity)) * 3.6; // km/h
+
+        double powerToWeight = horsepower / weight;
+        
+        double accelerationTime = calculateAccelerationTime(car);
+
+        return String.format(
+                "Performance Metrics:\n" +
+                "Power-to-Weight Ratio: %.2f hp/kg\n" +
+                "0-60 mph Acceleration Time: %.2f seconds\n" +
+                "Estimated Top Speed: %.2f km/h\n",
+                powerToWeight, accelerationTime, topSpeed);
+    }
+
+    public static String compareCars(Car car1, Car car2) {
+        String performance1 = analyzePerformance(car1);
+        String performance2 = analyzePerformance(car2);
+
+        return "Car 1 Performance:\n" + performance1 + "\nCar 2 Performance:\n" + performance2;
+    }
+}
+
+public class CarPerformanceAnalyzerApp {
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Car Performance Analyzer (JDM)");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 700);
+        frame.setLayout(new BorderLayout());
+
+        JLabel titleLabel = new JLabel("Car Performance Analyzer (JDM)", JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(75, 0, 130));
+        frame.add(titleLabel, BorderLayout.NORTH);
+
+        JPanel inputPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel hpLabel = new JLabel("Horsepower (hp):");
+        JTextField hpField = new JTextField();
+        JLabel torqueLabel = new JLabel("Torque (Nm):");
+        JTextField torqueField = new JTextField();
+        JLabel weightLabel = new JLabel("Weight (kg):");
+        JTextField weightField = new JTextField();
+        JLabel dragLabel = new JLabel("Drag Coefficient (0.2 - 0.4):");
+        JTextField dragField = new JTextField();
+
+        inputPanel.add(hpLabel);
+        inputPanel.add(hpField);
+        inputPanel.add(torqueLabel);
+        inputPanel.add(torqueField);
+        inputPanel.add(weightLabel);
+        inputPanel.add(weightField);
+        inputPanel.add(dragLabel);
+        inputPanel.add(dragField);
+
+        frame.add(inputPanel, BorderLayout.WEST);
+
+        JTextArea outputArea = new JTextArea();
+        outputArea.setEditable(false);
+        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 5, 10, 10));
+        JButton calculateButton = new JButton("Calculate");
+        JButton simulateButton = new JButton("Simulate Modifications");
+        JButton compareButton = new JButton("Compare Two Cars");
+        JButton resetButton = new JButton("Reset");
+        JButton exitButton = new JButton("Exit");
+
+        buttonPanel.add(calculateButton);
+        buttonPanel.add(simulateButton);
+        buttonPanel.add(compareButton);
+        buttonPanel.add(resetButton);
+        buttonPanel.add(exitButton);
+
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+
+        calculateButton.addActionListener(e -> {
+            try {
+                double horsepower = Double.parseDouble(hpField.getText());
+                double torque = Double.parseDouble(torqueField.getText());
+                double weight = Double.parseDouble(weightField.getText());
+                double dragCoefficient = Double.parseDouble(dragField.getText());
+
+                if (dragCoefficient < 0.2 || dragCoefficient > 0.4) {
+                    JOptionPane.showMessageDialog(frame, "Drag coefficient must be between 0.2 and 0.4.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Car car = new Car(horsepower, torque, weight, dragCoefficient);
+                String performanceMetrics = PerformanceAnalyzer.analyzePerformance(car);
+                outputArea.setText(performanceMetrics);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter valid numerical inputs.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        simulateButton.addActionListener(e -> {
+            try {
+                double horsepower = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter new Horsepower (hp):"));
+                double torque = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter new Torque (Nm):"));
+                double weight = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter new Weight (kg):"));
+                double dragCoefficient = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter new Drag Coefficient (0.2 - 0.4):"));
+
+                if (dragCoefficient < 0.2 || dragCoefficient > 0.4) {
+                    JOptionPane.showMessageDialog(frame, "Drag coefficient must be between 0.2 and 0.4.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                hpField.setText(String.valueOf(horsepower));
+                torqueField.setText(String.valueOf(torque));
+                weightField.setText(String.valueOf(weight));
+                dragField.setText(String.valueOf(dragCoefficient));
+
+                JOptionPane.showMessageDialog(frame, "Modifications applied successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter valid numerical inputs.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        compareButton.addActionListener(e -> {
+            try {
+                double hp1 = Double.parseDouble(hpField.getText());
+                double torque1 = Double.parseDouble(torqueField.getText());
+                double weight1 = Double.parseDouble(weightField.getText());
+                double drag1 = Double.parseDouble(dragField.getText());
+
+                double hp2 = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter Horsepower for Car 2 (hp):"));
+                double torque2 = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter Torque for Car 2 (Nm):"));
+                double weight2 = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter Weight for Car 2 (kg):"));
+                double drag2 = Double.parseDouble(JOptionPane.showInputDialog(frame, "Enter Drag Coefficient for Car 2 (0.2 - 0.4):"));
+
+                if (drag1 < 0.2 || drag1 > 0.4 || drag2 < 0.2 || drag2 > 0.4) {
+                    JOptionPane.showMessageDialog(frame, "Drag coefficient must be between 0.2 and 0.4.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Car car1 = new Car(hp1, torque1, weight1, drag1);
+                Car car2 = new Car(hp2, torque2, weight2, drag2);
+
+                String comparison = PerformanceAnalyzer.compareCars(car1, car2);
+                outputArea.setText(comparison);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter valid numerical inputs.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        resetButton.addActionListener(e -> {
+            hpField.setText("");
+            torqueField.setText("");
+            weightField.setText("");
+            dragField.setText("");
+            outputArea.setText("");
+        });
+
+        exitButton.addActionListener(e -> System.exit(0));
+        frame.setVisible(true);
+    }
+}
